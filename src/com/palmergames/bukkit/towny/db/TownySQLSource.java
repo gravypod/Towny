@@ -39,6 +39,7 @@ import java.sql.Connection;
 //import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
@@ -620,8 +621,10 @@ public class TownySQLSource extends TownyFlatFileSource {
 		if (!getContext())
 			return false;
 		try {
-			Statement s = cntx.createStatement();
-			ResultSet rs = s.executeQuery("SELECT * FROM " + tb_prefix + "RESIDENTS " + " WHERE name='" + resident.getName() + "'");
+			
+			PreparedStatement statment = cntx.prepareStatement("SELECT * FROM " + tb_prefix + "RESIDENTS " + " WHERE name='?'");
+			statment.setString(1, resident.getName()); // Set the ? to our name
+			ResultSet rs = statment.executeQuery();
 			
 			while (rs.next()) {
 				try {
@@ -693,7 +696,7 @@ public class TownySQLSource extends TownyFlatFileSource {
 				if ((line != null) && (!line.isEmpty()))
 					utilLoadTownBlocks(line, null, resident);
 				
-				s.close();
+				statment.close();
 				return true;
 			}
 			return false;
@@ -716,8 +719,9 @@ public class TownySQLSource extends TownyFlatFileSource {
 			return false;
 
 		try {
-			Statement s = cntx.createStatement();
-			ResultSet rs = s.executeQuery("SELECT * FROM " + tb_prefix + "TOWNS " + " WHERE name='" + town.getName() + "'");
+			PreparedStatement statment = cntx.prepareStatement("SELECT * FROM " + tb_prefix + "TOWNS " + " WHERE name='?'");
+			statment.setString(1, town.getName()); // Set the ? to our name
+			ResultSet rs = statment.executeQuery();
 			
 			while (rs.next()) {
 
@@ -846,10 +850,10 @@ public class TownySQLSource extends TownyFlatFileSource {
 						}
 					}
 				}
-				s.close();
+				statment.close();
 				return true;
 			}
-			s.close();
+			statment.close();
 			return false;
 		} catch (SQLException e) {
 			TownyMessaging.sendErrorMsg("SQL: Load Town sql Error - " + e.getMessage());
@@ -869,9 +873,9 @@ public class TownySQLSource extends TownyFlatFileSource {
 		if (!getContext())
 			return false;
 		try {
-			Statement s = cntx.createStatement();
-			ResultSet rs = s.executeQuery("SELECT * FROM " + tb_prefix + "NATIONS WHERE name='" + nation.getName() + "'");
-			
+			PreparedStatement statment = cntx.prepareStatement("SELECT * FROM " + tb_prefix + "NATIONS WHERE name='?'");
+			statment.setString(1, nation.getName()); // Set the ? to our name
+			ResultSet rs = statment.executeQuery();
 			while (rs.next()) {
 				line = rs.getString("towns");
 				if (line != null) {
@@ -926,7 +930,7 @@ public class TownySQLSource extends TownyFlatFileSource {
 				nation.setNeutral(rs.getBoolean("neutral"));
 			}
 			
-			s.close();
+			statment.close();
 			return true;
 		} catch (SQLException e) {
 			TownyMessaging.sendErrorMsg("SQL: Load Nation sql error " + e.getMessage());
@@ -948,9 +952,9 @@ public class TownySQLSource extends TownyFlatFileSource {
 		if (!getContext())
 			return false;
 		try {
-			Statement s = cntx.createStatement();
-			ResultSet rs = s.executeQuery("SELECT * FROM " + tb_prefix + "WORLDS WHERE name='" + world.getName() + "'");
-			
+			PreparedStatement statment = cntx.prepareStatement("SELECT * FROM " + tb_prefix + "WORLDS WHERE name='?'");
+			statment.setString(1, world.getName()); // Set the ? to our name
+			ResultSet rs = statment.executeQuery();
 			while (rs.next()) {
 				line = rs.getString("towns");
 				if (line != null) {
@@ -1205,7 +1209,7 @@ public class TownySQLSource extends TownyFlatFileSource {
 
 			}
 			
-			s.close();
+			statment.close();
 			return true;
 
 		} catch (SQLException e) {
@@ -1230,9 +1234,11 @@ public class TownySQLSource extends TownyFlatFileSource {
 		for (TownBlock townBlock : getAllTownBlocks()) {
 			boolean set = false;
 			try {
-				Statement s = cntx.createStatement();
-				rs = s.executeQuery("SELECT * FROM " + tb_prefix + "TOWNBLOCKS" + " WHERE world='" + townBlock.getWorld().getName() + "' AND x='" + townBlock.getX() + "' AND z='" + townBlock.getZ() + "'");
-				
+				PreparedStatement statment = cntx.prepareStatement("SELECT * FROM " + tb_prefix + "TOWNBLOCKS" + " WHERE world='?' AND x='?' AND z='?'");
+				statment.setString(1, townBlock.getWorld().getName()); // Set the ? to our name
+				statment.setInt(2, townBlock.getX()); // Set our x
+				statment.setInt(3, townBlock.getZ()); // Set our z
+				rs = statment.executeQuery();
 				while (rs.next()) {
 					line = rs.getString("permissions");
 					if (line != null)
@@ -1270,7 +1276,7 @@ public class TownySQLSource extends TownyFlatFileSource {
 					}
 				}
 				
-				s.close();
+				statment.close();
 				
 			} catch (SQLException e) {
 				TownyMessaging.sendErrorMsg("Loading Error: Exception while reading TownBlocks ");
